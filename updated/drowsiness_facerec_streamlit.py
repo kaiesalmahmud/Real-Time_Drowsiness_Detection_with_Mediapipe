@@ -28,9 +28,6 @@ def run_speech(speech,speech_message):
     pyttsx3.engine.Engine.stop(speech)
 
 
-
-
-
 def draw_landmarks(image, outputs, land_mark, color): ## This function draws facial landmarks
     height, width =image.shape[:2]
 
