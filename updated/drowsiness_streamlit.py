@@ -9,12 +9,19 @@ import mediapipe as mp
 import cv2 as cv
 from scipy.spatial import distance as dis
 import pyttsx3
+import playsound
 
 import threading
+speech = pyttsx3.init()
 
-def run_speech(speech, speech_message):
+def run_speech(speech,speech_message):
+    playsound.playsound('storm.mp3', False)
+    speech = pyttsx3.init()
     speech.say(speech_message)
     speech.runAndWait()
+    pyttsx3.engine.Engine.stop(speech)
+
+
 
 
 
@@ -112,7 +119,7 @@ frame_count = 0
 min_frame = 5
 min_tolerance = 5.0
 
-speech = pyttsx3.init()
+
 ###STREAMLIT GUI CODE
 
 import cv2
@@ -142,38 +149,40 @@ hide_streamlit_style = """
 
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
-            footer:after {
-	        content:'© 2022 Bondstein Technologies Limited'; 
-	        visibility: visible;
-	        display: block;
-	        position: relative;
-	        #background-color: red;
-	        padding: 5px;
-	        top: 2px;}
+
             .css-15zrgzn {display: none}
             .css-eczf16 {display: none}
             .css-jn99sy {display: none}
+            .css-v84420.e1tzin5v2 {text-align: center}
+            
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
 
 
-
-st.image("https://bondstein.com/wp-content/uploads/2021/04/Bondstein-Logo.png", width=500)
-
-st.title("Realtime Driver Tracking developed by Bondstein Technologies Limited")
+st.image("https://bondstein.com/wp-content/uploads/2021/04/Bondstein-Logo.png", width=400)
 
 
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
-col1, col2 = st.columns([3, 1])
+
+
+st.title("Realtime Driver Tracking")
+
+col1, col2 = st.columns([3, 1],gap="large")
 
 with col1:
     FRAME_WINDOW = st.image([])
 
 with col2:
     warning = st.image([])
+    
+
     placeholder = st.empty()
+    
+st.subheader("Developed by Bondstein Technologies Limited")    
+     
 
 while True:
 
@@ -182,6 +191,7 @@ while True:
 
     if result:
         image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+        image= cv.flip(image, 1)
         #image_rgb = cv.cvtColor(image, cv.COLOR_BGR2RGB) ### converting BGR to RGB
         outputs = face_model.process(image)
 
@@ -212,9 +222,11 @@ while True:
 
             if frame_count > min_frame:
                 #### doing eye ratio analysis here
-
+                #speech = pyttsx3.init()
+                
                 #message = 'Hey driver, it Seems you are sleeping, please wake up wake up wake up'
-                #t =  threading.Thread(target=run_speech, args=(speech, message))
+                #t =  threading.Thread(target=run_speech, args=(speech,message), daemon=True)
+                t =  threading.Thread(target=playsound.playsound, args=('beep.mp3', False), daemon=True)
                 #### here, i'm creating new instance if the thread is dead
                 
                 draw_landmarks(image, outputs, UPPER_LOWER_LIPS , COLOR_BLUE)
@@ -223,23 +235,27 @@ while True:
                 warning.image("redwarn.png",use_column_width="always")
                 placeholder.header("KEEP YOUR EYES ON THE ROAD!!")
                 #playsound.playsound('eyes.mp3', True)
-                #t.start()
+                t.start()
 
 
             ratio_lips =  get_aspect_ratio(image, outputs, UPPER_LOWER_LIPS, LEFT_RIGHT_LIPS)
             if ratio_lips < 1.8:
                 #### doing mouth ratio analysis here
+                #speech = pyttsx3.init()
 
                 #message = 'Hey driver, you are looking tired, please take rest take rest take rest'
-                #p = threading.Thread(target=run_speech, args=(speech, message))
+                #p = threading.Thread(target=run_speech, args=(speech,message), daemon=True)
+                p = threading.Thread(target=playsound.playsound, args=('beep.mp3', False), daemon=True)
                 #### here, i'm creating new instance if the thread is dead
                 
                 #run_speech(speech, message)
                 warning.image("yellowwarn.png",use_column_width="always")
                 placeholder.header("YOU ARE TIRED!!")
-                #p.start()
+                p.start()
             if ratio_lips > 1.8 and frame_count < min_frame:
-                warning.image([],use_column_width="always")
+                warning.image("green.png",use_column_width="always")
+                
+                
                 placeholder.header("SAFE DRIVING")
 
         #cv.imshow("Sajid's Drowsiness Detector", image)
@@ -249,3 +265,5 @@ while True:
 
 capture.release()
 cv.destroyAllWindows()
+
+
